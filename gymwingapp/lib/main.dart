@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'zacc_binding.dart';
+import 'zacc_binding.dart' as api;
 import 'accelerometer_reader.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
@@ -8,6 +8,28 @@ enum ExerciseConcentricity { unknown, concentric, eccentric }
 
 void main() {
   runApp(const MyApp());
+}
+
+/// A class to manage a periodic timer in a separate thread.
+class ThreadedTimer {
+  Timer? _timer;
+  Function() _callback;
+  Duration _duration;
+
+  ThreadedTimer(this._duration, this._callback);
+
+  void start() {
+    _timer = Timer.periodic(_duration, (timer) {
+      _callback();
+    });
+  }
+
+  void stop() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  bool get isActive => _timer?.isActive ?? false;
 }
 
 class MyApp extends StatelessWidget {
@@ -41,7 +63,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   ExerciseConcentricity _concentricity = ExerciseConcentricity.unknown;
-  double _average = 0.0;
+  int? count = 0;
   final List<double> _values = [];
   StreamSubscription<List<double>>? _accelSub;
   FlutterTts flutterTts = FlutterTts();
@@ -52,8 +74,16 @@ class _MyHomePageState extends State<MyHomePage> {
     _accelSub = AccelerometerReader.instance.vectorStream.listen((vector) {
       setState(() {
         _values.add(vector[2]); // z acceleration
-        _average = averageFromList(_values);
-        _updateConcentricity(_average);
+        if (_values.length > 100) {
+          int currentCount = api.countPeaks(_values, 10.5, 70);
+          if (currentCount > 0) {
+            count = count! + currentCount;
+            _speak('$count');
+          }
+          _values.clear();
+        }
+
+        // _updateConcentricity(_average);
       });
     });
   }
@@ -97,7 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'Reps: ${_counter.toStringAsFixed(2)}',
+              'Reps: ${count ?? 0}',
               style: Theme.of(context).textTheme.headlineLarge,
             ),
             const SizedBox(height: 16),

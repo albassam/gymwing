@@ -1,6 +1,6 @@
 # GymWing
 
-GymWing is a mobile application that likely uses the device's accelerometer for tracking gym exercises.
+GymWing is a mobile application that uses the device's accelerometer for tracking gym exercises.
 
 ## Getting Started
 

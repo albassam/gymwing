@@ -10,10 +10,8 @@ class AccelerometerReader {
 
   static final AccelerometerReader instance = AccelerometerReader();
 
-  /// Constructor allows setting sampling rate, default is 250ms (4Hz)
-  AccelerometerReader({
-    this.samplingPeriod = const Duration(milliseconds: 250),
-  });
+  /// Constructor allows setting sampling rate, default is 50ms (20Hz)
+  AccelerometerReader({this.samplingPeriod = const Duration(milliseconds: 50)});
 
   /// The underlying stream from sensors_plus. Emits SensorEvent-like triples
   /// (x, y, z) in m/s^2.
